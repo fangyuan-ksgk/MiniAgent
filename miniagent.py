@@ -2,6 +2,9 @@ import requests
 import json
 import os
 import sys
+import csv
+import pandas as pd
+
 
 def get_response_message(message_history, message, system_prompt, user_name, url, headers):
 
@@ -87,3 +90,21 @@ class MiniAgent:
 
     def get_conversation(self):
         return get_conversation_from_message_histroy(self.message_history)
+    
+
+
+# Save queries to a CSV file
+def save_queries(queries, file_path="data/queries.csv"):
+    with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        for query in queries:
+            writer.writerow([query])
+
+def load_queries(file_path="data/queries.csv"):
+    try:
+        with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            return [row[0] for row in reader]
+    except FileNotFoundError:
+        print(f"No file found at {file_path}.")
+        return []
