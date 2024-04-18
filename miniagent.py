@@ -2,11 +2,7 @@ import requests
 import json
 import os
 
-
-url = "https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId=" + group_id
-headers = {"Content-Type": "application/json", "Authorization": "Bearer " + api_key}
-
-def get_response_message(message_history, query, system_prompt, user_name, url, headers):
+def get_response_message(message_history, message, system_prompt, user_name, url, headers):
 
     payload = {
         "bot_setting": [
@@ -51,7 +47,8 @@ class MiniAgent:
         self.headers = {"Content-Type": "application/json", "Authorization": "Bearer " + api_key}
     
     def chat(self, message):
-        response_message, reply = get_response_message(self.message_history, message, self.system_prompt, "LuKE", self.url, self.headers)
+        
+        response_message, reply = get_response_message(self.message_history, message, self.system_prompt, self.user_name, self.url, self.headers)
         self.message_history.append({"sender_type": "USER", "sender_name": self.user_name, "text": message})
         self.message_history.append(response_message)
         return reply
