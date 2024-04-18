@@ -23,9 +23,9 @@ def get_response_message(message_history, message, system_prompt, user_name, url
 
     response = requests.request("POST", url, headers=headers, json=payload,stream = True)
 
-
     stash_r = ""
     full_reply = ""
+    prev_reply = ""
 
     for r in response.iter_lines():
         if r:
@@ -35,14 +35,25 @@ def get_response_message(message_history, message, system_prompt, user_name, url
                     # Simulate the response line structure you mentioned
                     resp = json.loads(r_str.split('data: ', 1)[1])
                     reply = resp['choices'][0]['messages'][0]['text']
+                    if full_reply == reply:
+                        # print("Repeating reply")
+                        continue
                     full_reply += reply
-                    print(reply, end=" ", flush=True)
+                    # print("End Reply")
+                    # print(reply, end=" ", flush=True)
+                    prev_reply = reply
+                    # print(prev_reply)
+                    # print("-- Prev Reply: ", prev_reply)
+                    print(prev_reply, end=" ", flush=True)
+
+                    # print("Prev Reply: ", prev_reply)
                     sys.stdout.flush()
                 else:
                     stash_r += r_str
             except UnicodeDecodeError:
                 print('Decode failed: ', r)
                 stash_r += r.decode("latin-1", errors="ignore")
+    # print("Complete Streaming")
 
     response_message = {"sender_type": "BOT", "sender_name": "Jessie", "text": full_reply}
     return response_message, full_reply
@@ -72,7 +83,7 @@ class MiniAgent:
         response_message, reply = get_response_message(self.message_history, message, self.system_prompt, self.user_name, self.url, self.headers)
         self.message_history.append({"sender_type": "USER", "sender_name": self.user_name, "text": message})
         self.message_history.append(response_message)
-        return reply
+        return 
 
     def get_conversation(self):
         return get_conversation_from_message_histroy(self.message_history)
