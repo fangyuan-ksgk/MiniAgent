@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import sys
 
 def get_response_message(message_history, message, system_prompt, user_name, url, headers):
 
@@ -17,14 +18,34 @@ def get_response_message(message_history, message, system_prompt, user_name, url
         "tokens_to_generate": 1034,
         "temperature": 0.01,
         "top_p": 0.95,
-        # "stream": True,
+        "stream": True,
     }
 
-    response = requests.request("POST", url, headers=headers, json=payload)
-    response_message = json.loads(response.text)['choices'][0]['messages']
-    reply = json.loads(response.text)['reply']
+    response = requests.request("POST", url, headers=headers, json=payload,stream = True)
 
-    return response_message, reply
+
+    stash_r = ""
+    full_reply = ""
+
+    for r in response.iter_lines():
+        if r:
+            try:
+                r_str = r.decode("utf-8")
+                if r_str.startswith("data:"):
+                    # Simulate the response line structure you mentioned
+                    resp = json.loads(r_str.split('data: ', 1)[1])
+                    reply = resp['choices'][0]['messages'][0]['text']
+                    full_reply += reply
+                    print(reply, end=" ", flush=True)
+                    sys.stdout.flush()
+                else:
+                    stash_r += r_str
+            except UnicodeDecodeError:
+                print('Decode failed: ', r)
+                stash_r += r.decode("latin-1", errors="ignore")
+
+    response_message = {"sender_type": "BOT", "sender_name": "Jessie", "text": full_reply}
+    return response_message, full_reply
 
 def get_conversation_from_message_histroy(history):
     conversation = []
